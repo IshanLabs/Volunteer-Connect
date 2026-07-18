@@ -1,0 +1,173 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   VolunteerConnect — Design Tokens
+   Signature: "growth rings" — organic radial progress motifs
+   echoing tree rings / plant growth, tying every stat and
+   loading state back to the environmental, hands-in-the-soil
+   spirit of the platform.
+   ============================================================ */
+:root {
+  /* Canvas & surface */
+  --canvas: #F5F8F3;
+  --canvas-dim: #EEF3EA;
+  --surface: #FFFFFF;
+  --border: #E1E9DE;
+  --border-soft: #ECF1E9;
+
+  /* Ink */
+  --ink: #10241C;
+  --ink-soft: #4C6357;
+  --ink-faint: #83988C;
+
+  /* Brand greens */
+  --forest-900: #0A2E22;
+  --forest-800: #0E3B2C;
+  --forest-700: #145C43;
+  --forest-600: #1B7A54;
+  --leaf-500: #2FA86A;
+  --leaf-400: #4FC182;
+  --leaf-300: #8FDCA9;
+  --leaf-100: #E3F7E9;
+
+  /* Gold accent — sunlight through leaves */
+  --gold-600: #B8862E;
+  --gold-500: #D8A93B;
+  --gold-300: #F0D48A;
+  --gold-100: #FBF1D6;
+
+  /* Admin — slate/plum, quiet authority against the green world */
+  --slate-900: #201E33;
+  --slate-800: #2E2B47;
+  --slate-600: #524C77;
+  --plum-500: #6C5CA6;
+
+  /* Signals */
+  --danger: #C34A3E;
+  --danger-bg: #FBEAE8;
+  --warn: #C68A2E;
+  --warn-bg: #FBF1DE;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(16, 36, 28, 0.06), 0 1px 3px rgba(16, 36, 28, 0.04);
+  --shadow-md: 0 8px 24px -8px rgba(16, 36, 28, 0.16), 0 2px 6px rgba(16, 36, 28, 0.06);
+  --shadow-lg: 0 24px 48px -16px rgba(16, 36, 28, 0.24);
+  --shadow-glow: 0 0 0 1px rgba(47, 168, 106, 0.14), 0 12px 32px -12px rgba(47, 168, 106, 0.35);
+
+  /* Radii */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-full: 999px;
+
+  /* Type */
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  --font-body: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(circle at 100% 0%, rgba(47, 168, 106, 0.06), transparent 45%),
+    radial-gradient(circle at 0% 100%, rgba(216, 169, 59, 0.05), transparent 40%);
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.font-mono-num {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+}
+
+::selection {
+  background: var(--leaf-300);
+  color: var(--forest-900);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--leaf-300);
+  border-radius: var(--r-full);
+  border: 2px solid var(--canvas);
+}
+
+:focus-visible {
+  outline: 2px solid var(--leaf-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Reusable organic surface texture for hero/panel backdrops */
+.canopy-mesh {
+  background:
+    radial-gradient(60% 80% at 15% 0%, rgba(47, 168, 106, 0.55), transparent 60%),
+    radial-gradient(50% 70% at 85% 20%, rgba(216, 169, 59, 0.35), transparent 60%),
+    linear-gradient(160deg, var(--forest-900), var(--forest-700) 70%);
+}
+
+.admin-mesh {
+  background:
+    radial-gradient(55% 75% at 10% 0%, rgba(108, 92, 166, 0.45), transparent 60%),
+    radial-gradient(50% 70% at 90% 30%, rgba(216, 169, 59, 0.25), transparent 60%),
+    linear-gradient(160deg, var(--slate-900), var(--slate-800) 70%);
+}
+
+.grain {
+  position: relative;
+}
+
+.grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+}
