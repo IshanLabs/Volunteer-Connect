@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import earth from "../../assets/images/earth.png";
 import GlassButton from "../common/GlassButton";
 
 function Hero() {
+  const navigate = useNavigate();
+
   return (
     <section
       className="
@@ -95,7 +98,7 @@ function Hero() {
 
             <div className="flex gap-5 mt-10">
 
-              <GlassButton>
+              <GlassButton onClick={() => navigate("/role-selection")}>
                 Join Now
               </GlassButton>
 
@@ -106,6 +109,7 @@ function Hero() {
             </div>
 
           </motion.div>
+
 
           {/* RIGHT */}
 

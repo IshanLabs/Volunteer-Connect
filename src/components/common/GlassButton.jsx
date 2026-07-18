@@ -1,7 +1,8 @@
-function GlassButton({ children }) {
+function GlassButton({ children, ...props }) {
   return (
     <button
-      className="
+      {...props}
+      className={`
       relative
       overflow-hidden
       px-8
@@ -17,7 +18,8 @@ function GlassButton({ children }) {
       hover:scale-105
       transition-all
       duration-300
-      "
+      ${props.className || ""}
+      `}
     >
       {children}
     </button>
