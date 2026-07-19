@@ -1,7 +1,9 @@
 import { MapPin, Calendar, Users } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
-export default function EventCard({ title, location, date, category, volunteers }) {
+export default function EventCard({ id, title, location, date, category, volunteers }) {
+    const navigate = useNavigate();
     return (
         <motion.div
             whileHover={{ y: -5 }}
@@ -43,6 +45,7 @@ export default function EventCard({ title, location, date, category, volunteers 
 
             <motion.button
                 whileTap={{ scale: 0.97 }}
+                onClick={() => navigate(`/volunteer/events/${id}`)}
                 className="w-full mt-6 text-white py-2.5 rounded-[var(--r-sm)] font-semibold text-sm transition-all"
                 style={{ background: "linear-gradient(135deg, var(--leaf-500), var(--forest-700))" }}
             >

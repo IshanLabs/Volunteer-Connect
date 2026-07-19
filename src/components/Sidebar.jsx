@@ -7,7 +7,7 @@ import {
     Sprout
 } from "lucide-react";
 
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation} from "react-router-dom";
 import { motion } from "framer-motion";
 
 const menu = [
@@ -19,17 +19,17 @@ const menu = [
     {
         title: "Browse Events",
         icon: CalendarDays,
-        path: "/volunteer/dashboard",
+        path: "/volunteer/events",
     },
     {
         title: "Applications",
         icon: FileText,
-        path: "/volunteer/dashboard",
+        path: "/volunteer/application",
     },
     {
         title: "Profile",
         icon: User,
-        path: "/volunteer/dashboard",
+        path: "/volunteer/profile",
     },
 ];
 
@@ -64,7 +64,7 @@ export default function Sidebar() {
 
                 <nav className="mt-6 px-4 space-y-1.5">
                     {menu.map((item, i) => {
-                        const isActive = item.title === "Dashboard"; // keep dashboard highlighted for volunteer page since it is the only page
+                        const isActive = location.pathname === item.path;
                         return (
                             <motion.div
                                 key={item.title}

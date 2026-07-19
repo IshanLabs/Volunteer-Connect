@@ -6,9 +6,9 @@ import { ClipboardList, CheckCircle2, Trophy, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 
 const events = [
-    { title: "Beach Cleanup", location: "Mumbai", date: "20 July", category: "Environment", volunteers: 25 },
-    { title: "Reading Circle", location: "Pune", date: "24 July", category: "Education", volunteers: 12 },
-    { title: "Meal Drive", location: "Nashik", date: "28 July", category: "Food Distribution", volunteers: 30 },
+    { id: 1, title: "Beach Cleanup", location: "Mumbai", date: "20 July", category: "Environment", volunteers: 25 },
+    { id: 2, title: "Reading Circle", location: "Pune", date: "24 July", category: "Education", volunteers: 12 },
+    { id: 3, title: "Meal Drive", location: "Nashik", date: "28 July", category: "Food Distribution", volunteers: 30 },
 ];
 
 export default function Dashboard() {

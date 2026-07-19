@@ -15,6 +15,10 @@ import RoleSelection from "../pages/RoleSelection";
 
 // Volunteer
 import VolunteerDashboard from "../pages/volunteer/Dashboard";
+import BrowseEvents from "../pages/volunteer/BrowseEvents"
+import Application from "../pages/volunteer/Applications"
+import VolunteerProfile from "../pages/volunteer/Profile"
+import EventDetails from "../pages/volunteer/EventDetail";
 
 // NGO
 import NGODashboard from "../pages/ngo/Dashboard";
@@ -46,6 +50,10 @@ function AppRoutes() {
 
         {/* Volunteer */}
         <Route path="/volunteer/dashboard" element={<VolunteerDashboard />} />
+        <Route path="/volunteer/events" element={<BrowseEvents />}/>
+        <Route path="/volunteer/application" element={<Application />}/>
+        <Route path="/volunteer/profile" element={<VolunteerProfile/>}/>
+        <Route path="/volunteer/events/:id" element={<EventDetails />}/>
 
         {/* NGO */}
         <Route path="/ngo/dashboard" element={<NGODashboard />} />
@@ -62,4 +70,4 @@ function AppRoutes() {
   );
 }
 
-export default AppRoutes;
+export default AppRoutes;
