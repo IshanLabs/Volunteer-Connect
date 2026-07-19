@@ -9,9 +9,11 @@ import EmailVerified from "../pages/EmailVerified";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import PasswordChanged from "../pages/PasswordChanged";
+import About from "../pages/About";
+import ContactUs from "../pages/ContactUs"
 
 // Dashboard and role pages
-import RoleSelection from "../pages/RoleSelection";
+// import RoleSelection from "../pages/RoleSelection";
 
 // Volunteer
 import VolunteerDashboard from "../pages/volunteer/Dashboard";
@@ -38,15 +40,15 @@ function AppRoutes() {
         {/* Landing & Authentication */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/about" element={<About />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/email-verified" element={<EmailVerified />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/password-changed" element={<PasswordChanged />} />
-
-        {/* Role Selection */}
-        <Route path="/role-selection" element={<RoleSelection />} />
+        <Route path="/events" element={<BrowseEvents />}/>
 
         {/* Volunteer */}
         <Route path="/volunteer/dashboard" element={<VolunteerDashboard />} />
