@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-
 import {
   FaUser,
   FaEnvelope,
@@ -9,12 +8,12 @@ import {
   FaUsers,
 } from "react-icons/fa";
 
+import { signupUser } from "../../api/authService";
+
 import AuthInput from "./AuthInput";
 import AuthButton from "./AuthButton";
 
 function SignupForm() {
-
-  // Create navigate object
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -22,7 +21,7 @@ function SignupForm() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "Volunteer",
+    role: "VOLUNTEER",
     terms: false,
   });
 
@@ -74,43 +73,43 @@ function SignupForm() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const validationErrors = validate();
-
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length > 0) {
       return;
     }
 
-    // Show loading spinner
     setLoading(true);
 
-    // Simulate API request
-    setTimeout(() => {
+    try {
+      const userData = {
+        fullName: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+      };
 
-    setLoading(false);
+      const response = await signupUser(userData);
 
-    toast.success("Account created successfully!");
+      toast.success(response.message || "Account created successfully!");
 
-}, 2000);
-
-setTimeout(() => {
-
-  setLoading(false);
-
-  toast.success("Account created successfully!");
-
-  navigate("/verify-email");
-
-},2000);
+      navigate("/verify-email");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          "Signup failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit}>
-
       <AuthInput
         label="Full Name"
         type="text"
@@ -158,55 +157,40 @@ setTimeout(() => {
       {/* Role */}
 
       <div className="mb-6">
-
         <label className="text-gray-300 text-sm block mb-2">
           Role
         </label>
 
         <div className="relative">
-
-          <FaUsers
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-green-400"
-          />
+          <FaUsers className="absolute left-4 top-1/2 -translate-y-1/2 text-green-400" />
 
           <select
             name="role"
             value={formData.role}
             onChange={handleChange}
-            className="
-              w-full
-              pl-12
-              pr-4
-              py-4
-              rounded-xl
-              bg-white/5
-              border
-              border-white/10
-              text-white
-              outline-none
-              focus:border-green-400
-            "
+            className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-green-400"
           >
-            <option className="bg-[#0A2416]">
+            <option
+              value="VOLUNTEER"
+              className="bg-[#0A2416]"
+            >
               Volunteer
             </option>
 
-            <option className="bg-[#0A2416]">
+            <option
+              value="NGO"
+              className="bg-[#0A2416]"
+            >
               NGO
             </option>
-
           </select>
-
         </div>
-
       </div>
 
       {/* Terms */}
 
       <div className="mb-6">
-
         <label className="flex items-start gap-3 text-gray-300 text-sm">
-
           <input
             type="checkbox"
             name="terms"
@@ -216,7 +200,6 @@ setTimeout(() => {
           />
 
           I agree to the Terms & Conditions
-
         </label>
 
         {errors.terms && (
@@ -224,18 +207,13 @@ setTimeout(() => {
             {errors.terms}
           </p>
         )}
-
       </div>
 
-      <AuthButton
-        loading={loading}
-        type="submit"
-      >
+      <AuthButton loading={loading} type="submit">
         Create Account
       </AuthButton>
 
       <p className="text-center text-gray-300 mt-8">
-
         Already have an account?
 
         <Link
@@ -244,9 +222,7 @@ setTimeout(() => {
         >
           Login
         </Link>
-
       </p>
-
     </form>
   );
 }
