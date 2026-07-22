@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 // Auth flow pages
 import Home from "../pages/Home";
@@ -10,16 +11,16 @@ import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import PasswordChanged from "../pages/PasswordChanged";
 import About from "../pages/About";
-import ContactUs from "../pages/ContactUs"
+import ContactUs from "../pages/ContactUs";
 
 // Dashboard and role pages
-// import RoleSelection from "../pages/RoleSelection";
+import RoleSelection from "../pages/RoleSelection";
 
 // Volunteer
 import VolunteerDashboard from "../pages/volunteer/Dashboard";
-import BrowseEvents from "../pages/volunteer/BrowseEvents"
-import Application from "../pages/volunteer/Applications"
-import VolunteerProfile from "../pages/volunteer/Profile"
+import BrowseEvents from "../pages/volunteer/BrowseEvents";
+import Application from "../pages/volunteer/Applications";
+import VolunteerProfile from "../pages/volunteer/Profile";
 import EventDetails from "../pages/volunteer/EventDetail";
 
 // NGO
@@ -48,25 +49,32 @@ function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/password-changed" element={<PasswordChanged />} />
-        <Route path="/events" element={<BrowseEvents />}/>
+        <Route path="/role-selection" element={<RoleSelection />} />
 
-        {/* Volunteer */}
-        <Route path="/volunteer/dashboard" element={<VolunteerDashboard />} />
-        <Route path="/volunteer/events" element={<BrowseEvents />}/>
-        <Route path="/volunteer/application" element={<Application />}/>
-        <Route path="/volunteer/profile" element={<VolunteerProfile/>}/>
-        <Route path="/volunteer/events/:id" element={<EventDetails />}/>
+        {/* Volunteer Protected Routes */}
+        <Route element={<ProtectedRoute allowedRoles={["VOLUNTEER"]} />}>
+          <Route path="/volunteer/dashboard" element={<VolunteerDashboard />} />
+          <Route path="/volunteer/events" element={<BrowseEvents />} />
+          <Route path="/volunteer/application" element={<Application />} />
+          <Route path="/volunteer/profile" element={<VolunteerProfile />} />
+          <Route path="/volunteer/events/:id" element={<EventDetails />} />
+          <Route path="/events" element={<BrowseEvents />} />
+        </Route>
 
-        {/* NGO */}
-        <Route path="/ngo/dashboard" element={<NGODashboard />} />
-        <Route path="/ngo/create-event" element={<CreateEvent />} />
-        <Route path="/ngo/events" element={<MyEvents />} />
-        <Route path="/ngo/profile" element={<Profile />} />
+        {/* NGO Protected Routes */}
+        <Route element={<ProtectedRoute allowedRoles={["NGO"]} />}>
+          <Route path="/ngo/dashboard" element={<NGODashboard />} />
+          <Route path="/ngo/create-event" element={<CreateEvent />} />
+          <Route path="/ngo/events" element={<MyEvents />} />
+          <Route path="/ngo/profile" element={<Profile />} />
+        </Route>
 
-        {/* Admin */}
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/verify-ngos" element={<VerifyNGOs />} />
-        <Route path="/admin/manage-events" element={<ManageEvents />} />
+        {/* Admin Protected Routes */}
+        <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/verify-ngos" element={<VerifyNGOs />} />
+          <Route path="/admin/manage-events" element={<ManageEvents />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

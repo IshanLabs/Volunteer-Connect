@@ -1,15 +1,44 @@
+import { useState, useEffect } from "react";
 import NGOSidebar from "../../components/ngo/NGOSidebar";
 import NGONavbar from "../../components/ngo/NGONavbar";
 import { motion } from "framer-motion";
-import { MapPin, CalendarDays, Users, Pencil, Trash2 } from "lucide-react";
-
-const events = [
-    { id: 1, title: "Beach Cleanup Drive", location: "Mumbai", date: "20 July 2026", volunteers: 25 },
-    { id: 2, title: "Food Distribution", location: "Pune", date: "25 July 2026", volunteers: 18 },
-    { id: 3, title: "Tree Plantation", location: "Nashik", date: "30 July 2026", volunteers: 32 },
-];
+import { MapPin, CalendarDays, Users, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
+import { fetchMyNGOEvents, deleteEvent } from "../../api/eventService";
 
 export default function MyEvents() {
+    const [eventsList, setEventsList] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadNGOEvents();
+    }, []);
+
+    const loadNGOEvents = async () => {
+        setLoading(true);
+        try {
+            const res = await fetchMyNGOEvents();
+            setEventsList(res.data || []);
+        } catch (error) {
+            console.error("Error loading NGO events:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this event?")) return;
+
+        try {
+            await deleteEvent(id);
+            toast.success("Event deleted successfully");
+            loadNGOEvents();
+        } catch (error) {
+            console.error("Failed to delete event:", error);
+            toast.error("Failed to delete event");
+        }
+    };
+
     return (
         <div className="min-h-screen canopy-mesh grain relative overflow-hidden text-white">
             {/* ambient orbs */}
@@ -37,57 +66,55 @@ export default function MyEvents() {
                         className="text-xs font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full"
                         style={{ background: "rgba(255, 255, 255, 0.1)", color: "var(--leaf-300)", border: "1px solid rgba(255, 255, 255, 0.15)" }}
                     >
-                        {events.length} active
+                        {eventsList.length} active
                     </span>
                 </div>
 
-                <div className="grid gap-5">
-                    {events.map((event, i) => (
-                        <motion.div
-                            key={event.id}
-                            initial={{ opacity: 0, y: 14 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.4, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                            whileHover={{ y: -3 }}
-                            className="rounded-[var(--r-lg)] p-6 flex justify-between items-center backdrop-blur-sm"
-                            style={{ background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.12)", boxShadow: "var(--shadow-sm)" }}
-                        >
-                            <div>
-                                <h2 className="text-xl font-bold text-white">{event.title}</h2>
+                {loading ? (
+                    <div className="text-gray-400 py-20 text-center">Loading your events...</div>
+                ) : eventsList.length === 0 ? (
+                    <div className="text-gray-400 py-20 text-center">You haven't posted any events yet.</div>
+                ) : (
+                    <div className="grid gap-5">
+                        {eventsList.map((event, i) => (
+                            <motion.div
+                                key={event.event_id}
+                                initial={{ opacity: 0, y: 14 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.4, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                                whileHover={{ y: -3 }}
+                                className="rounded-[var(--r-lg)] p-6 flex justify-between items-center backdrop-blur-sm"
+                                style={{ background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.12)", boxShadow: "var(--shadow-sm)" }}
+                            >
+                                <div>
+                                    <h2 className="text-xl font-bold text-white">{event.event_name}</h2>
 
-                                <p className="flex items-center gap-2 mt-2 text-sm" style={{ color: "rgba(255, 255, 255, 0.65)" }}>
-                                    <MapPin size={15} style={{ color: "var(--leaf-400)" }} /> {event.location}
-                                </p>
-                                <p className="flex items-center gap-2 mt-1 text-sm" style={{ color: "rgba(255, 255, 255, 0.65)" }}>
-                                    <CalendarDays size={15} style={{ color: "var(--leaf-400)" }} /> {event.date}
-                                </p>
-                                <p className="flex items-center gap-2 mt-3 text-sm font-semibold" style={{ color: "var(--gold-300)" }}>
-                                    <Users size={15} /> {event.volunteers} applicants
-                                </p>
-                            </div>
+                                    <p className="flex items-center gap-2 mt-2 text-sm" style={{ color: "rgba(255, 255, 255, 0.65)" }}>
+                                        <MapPin size={15} style={{ color: "var(--leaf-400)" }} /> {event.city || "Remote"}
+                                    </p>
+                                    <p className="flex items-center gap-2 mt-1 text-sm" style={{ color: "rgba(255, 255, 255, 0.65)" }}>
+                                        <CalendarDays size={15} style={{ color: "var(--leaf-400)" }} /> {new Date(event.start_at).toLocaleDateString()}
+                                    </p>
+                                    <p className="flex items-center gap-2 mt-3 text-sm font-semibold" style={{ color: "var(--gold-300)" }}>
+                                        <Users size={15} /> {event.total_applications || 0} applicants ({event.approved_applications || 0} approved)
+                                    </p>
+                                </div>
 
-                            <div className="flex gap-3">
-                                <motion.button
-                                    whileTap={{ scale: 0.95 }}
-                                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-[var(--r-sm)] font-semibold text-sm"
-                                    style={{ background: "rgba(216,169,59,0.15)", color: "var(--gold-300)" }}
-                                >
-                                    <Pencil size={15} />
-                                    Edit
-                                </motion.button>
-
-                                <motion.button
-                                    whileTap={{ scale: 0.95 }}
-                                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-[var(--r-sm)] font-semibold text-sm"
-                                    style={{ background: "rgba(195,74,62,0.15)", color: "#ff8a7f" }}
-                                >
-                                    <Trash2 size={15} />
-                                    Delete
-                                </motion.button>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
+                                <div className="flex gap-3">
+                                    <motion.button
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => handleDelete(event.event_id)}
+                                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-[var(--r-sm)] font-semibold text-sm"
+                                        style={{ background: "rgba(195,74,62,0.15)", color: "#ff8a7f" }}
+                                    >
+                                        <Trash2 size={15} />
+                                        Delete
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
             </main>
         </div>
     );

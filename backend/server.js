@@ -7,6 +7,10 @@ const db = require("./config/db");
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
+const eventRoutes = require("./routes/eventRoutes");
+const applicationRoutes = require("./routes/applicationRoutes");
+const profileRoutes = require("./routes/profileRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 // Initialize Express App
 const app = express();
@@ -58,8 +62,12 @@ app.get("/test-db", async (req, res) => {
 
 });
 
-// Authentication Routes
+// Application API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/applications", applicationRoutes);
+app.use("/api/profiles", profileRoutes);
+app.use("/api/admin", adminRoutes);
 
 // ===============================
 // Server

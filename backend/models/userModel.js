@@ -44,8 +44,30 @@ const createUser = async ({ fullName, email, passwordHash, role }) => {
   ];
 
   const result = await db.query(query, values);
+  const user = result.rows[0];
 
-  return result.rows[0];
+  try {
+    if (role === "VOLUNTEER") {
+      await db.query(
+        `INSERT INTO volunteer_profiles (user_id) VALUES ($1) ON CONFLICT DO NOTHING`,
+        [user.user_id]
+      );
+    } else if (role === "NGO") {
+      await db.query(
+        `INSERT INTO ngo_profiles (user_id, organization_name, contact_email) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
+        [user.user_id, fullName, email]
+      );
+    } else if (role === "ADMIN") {
+      await db.query(
+        `INSERT INTO admin_profiles (user_id) VALUES ($1) ON CONFLICT DO NOTHING`,
+        [user.user_id]
+      );
+    }
+  } catch (err) {
+    console.error("⚠️ Error creating role profile:", err.message);
+  }
+
+  return user;
 };
 
 module.exports = {

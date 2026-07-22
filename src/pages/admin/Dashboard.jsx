@@ -1,14 +1,16 @@
+import { useState, useEffect } from "react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminNavbar from "../../components/admin/AdminNavbar";
 import StatCard from "../../components/StatCard";
 import { motion } from "framer-motion";
 import { Users, Building2, CalendarDays, Hourglass, BadgeCheck, PartyPopper, UserPlus, Building } from "lucide-react";
+import { fetchAdminStats } from "../../api/adminService";
 
 const activities = [
-    { icon: BadgeCheck, text: "Green Earth NGO registered.", tint: "leaf" },
-    { icon: PartyPopper, text: "Beach Cleanup event created.", tint: "gold" },
-    { icon: UserPlus, text: "10 volunteers joined Food Drive.", tint: "leaf" },
-    { icon: Building, text: "Hope Foundation waiting for approval.", tint: "plum" },
+    { icon: BadgeCheck, text: "New user registered on the platform.", tint: "leaf" },
+    { icon: PartyPopper, text: "Community event created.", tint: "gold" },
+    { icon: UserPlus, text: "Volunteers active across cities.", tint: "leaf" },
+    { icon: Building, text: "NGO verifications processed.", tint: "plum" },
 ];
 
 const TINTS = {
@@ -18,6 +20,30 @@ const TINTS = {
 };
 
 export default function Dashboard() {
+    const [stats, setStats] = useState({
+        totalVolunteers: 0,
+        totalNGOs: 0,
+        totalEvents: 0,
+        pendingVerifications: 0,
+    });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadStats();
+    }, []);
+
+    const loadStats = async () => {
+        setLoading(true);
+        try {
+            const res = await fetchAdminStats();
+            setStats(res.data || {});
+        } catch (error) {
+            console.error("Error loading admin stats:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen canopy-mesh grain relative overflow-hidden text-white">
             {/* ambient orbs */}
@@ -43,12 +69,16 @@ export default function Dashboard() {
                     Admin Dashboard
                 </h1>
 
-                <div className="grid md:grid-cols-4 gap-6">
-                    <StatCard title="Users" value="245" icon={Users} accent="plum" />
-                    <StatCard title="NGOs" value="18" icon={Building2} accent="leaf" />
-                    <StatCard title="Events" value="42" icon={CalendarDays} accent="gold" />
-                    <StatCard title="Pending" value="5" icon={Hourglass} accent="plum" />
-                </div>
+                {loading ? (
+                    <div className="text-gray-400 py-10">Loading statistics...</div>
+                ) : (
+                    <div className="grid md:grid-cols-4 gap-6">
+                        <StatCard title="Volunteers" value={stats.totalVolunteers || 0} icon={Users} accent="plum" />
+                        <StatCard title="NGOs" value={stats.totalNGOs || 0} icon={Building2} accent="leaf" />
+                        <StatCard title="Events" value={stats.totalEvents || 0} icon={CalendarDays} accent="gold" />
+                        <StatCard title="Pending NGOs" value={stats.pendingVerifications || 0} icon={Hourglass} accent="plum" />
+                    </div>
+                )}
 
                 <motion.div
                     initial={{ opacity: 0, y: 16 }}
@@ -66,7 +96,7 @@ export default function Dashboard() {
                             const tint = TINTS[a.tint];
                             return (
                                 <motion.li
-                                    key={a.text}
+                                    key={i}
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ duration: 0.35, delay: 0.2 + i * 0.08 }}

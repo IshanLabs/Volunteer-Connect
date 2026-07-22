@@ -1,17 +1,43 @@
+import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import StatCard from "../../components/StatCard";
 import EventCard from "../../components/EventCard";
 import { ClipboardList, CheckCircle2, Trophy, Clock } from "lucide-react";
 import { motion } from "framer-motion";
-
-const events = [
-    { id: 1, title: "Beach Cleanup", location: "Mumbai", date: "20 July", category: "Environment", volunteers: 25 },
-    { id: 2, title: "Reading Circle", location: "Pune", date: "24 July", category: "Education", volunteers: 12 },
-    { id: 3, title: "Meal Drive", location: "Nashik", date: "28 July", category: "Food Distribution", volunteers: 30 },
-];
+import { fetchAllEvents } from "../../api/eventService";
+import { fetchMyApplications } from "../../api/applicationService";
 
 export default function Dashboard() {
+    const [events, setEvents] = useState([]);
+    const [apps, setApps] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            const [eventsRes, appsRes] = await Promise.all([
+                fetchAllEvents(),
+                fetchMyApplications().catch(() => ({ data: [] })),
+            ]);
+            setEvents((eventsRes.data || []).slice(0, 3));
+            setApps(appsRes.data || []);
+        } catch (error) {
+            console.error("Error loading dashboard data:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const appliedCount = apps.length;
+    const acceptedCount = apps.filter(a => a.status === "APPROVED" || a.status === "SHORTLISTED").length;
+    const completedCount = apps.filter(a => a.status === "APPROVED").length;
+    const pendingCount = apps.filter(a => a.status === "SUBMITTED").length;
+
     return (
         <div className="min-h-screen canopy-mesh grain relative overflow-hidden text-white">
             {/* ambient orbs */}
@@ -34,10 +60,10 @@ export default function Dashboard() {
                 <Navbar />
 
                 <div className="grid grid-cols-4 gap-5 mt-8">
-                    <StatCard title="Applied" value="5" icon={ClipboardList} accent="leaf" />
-                    <StatCard title="Accepted" value="3" icon={CheckCircle2} accent="gold" />
-                    <StatCard title="Completed" value="2" icon={Trophy} accent="plum" />
-                    <StatCard title="Upcoming" value="1" icon={Clock} accent="leaf" />
+                    <StatCard title="Applied" value={appliedCount} icon={ClipboardList} accent="leaf" />
+                    <StatCard title="Shortlisted / Approved" value={acceptedCount} icon={CheckCircle2} accent="gold" />
+                    <StatCard title="Approved" value={completedCount} icon={Trophy} accent="plum" />
+                    <StatCard title="Pending" value={pendingCount} icon={Clock} accent="leaf" />
                 </div>
 
                 <div className="mt-10">
@@ -57,11 +83,25 @@ export default function Dashboard() {
                         </span>
                     </motion.div>
 
-                    <div className="grid grid-cols-3 gap-6">
-                        {events.map((e) => (
-                            <EventCard key={e.title} {...e} />
-                        ))}
-                    </div>
+                    {loading ? (
+                        <div className="text-gray-400 py-10 text-center">Loading events...</div>
+                    ) : events.length === 0 ? (
+                        <div className="text-gray-400 py-10 text-center">No upcoming events yet.</div>
+                    ) : (
+                        <div className="grid grid-cols-3 gap-6">
+                            {events.map((e) => (
+                                <EventCard
+                                    key={e.event_id || e.id}
+                                    id={e.event_id || e.id}
+                                    title={e.event_name || e.title}
+                                    ngo={e.organization_name || e.ngo}
+                                    location={e.city || e.location}
+                                    date={e.start_at ? new Date(e.start_at).toLocaleDateString() : e.date}
+                                    image={e.banner_url || e.image}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </main>
         </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { FaEnvelope, FaLock } from "react-icons/fa";
+import { loginUser } from "../../api/authService";
 import AuthInput from "./AuthInput";
 import AuthButton from "./AuthButton";
 
@@ -42,7 +43,7 @@ function LoginForm() {
 
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
 
     e.preventDefault();
 
@@ -54,14 +55,31 @@ function LoginForm() {
 
     setLoading(true);
 
-    setTimeout(() => {
-
+    try {
+      const response = await loginUser({ email, password });
+      
+      localStorage.setItem("token", response.token);
+      localStorage.setItem("user", JSON.stringify(response.user));
+      
+      toast.success(response.message || "Login successful!");
+      
+      const role = response.user?.role;
+      if (role === "VOLUNTEER") {
+        navigate("/volunteer/dashboard");
+      } else if (role === "NGO") {
+        navigate("/ngo/dashboard");
+      } else if (role === "ADMIN") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/role-selection");
+      }
+    } catch (error) {
+      console.error("❌ Login error:", error);
+      const errMsg = error.response?.data?.message || "Invalid credentials. Please try again.";
+      toast.error(errMsg);
+    } finally {
       setLoading(false);
-
-      toast.success("Login successful!");
-      navigate("/role-selection");
-
-    }, 2000);
+    }
 
   };
 
@@ -140,7 +158,7 @@ function LoginForm() {
 
       </div>
 
-      <AuthButton loading={loading}>
+      <AuthButton loading={loading} type="submit">
 
         Login
 

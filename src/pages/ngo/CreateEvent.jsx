@@ -1,14 +1,18 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import NGOSidebar from "../../components/ngo/NGOSidebar";
 import NGONavbar from "../../components/ngo/NGONavbar";
 import { motion } from "framer-motion";
 import { Type, Tag, Users, MapPin, CalendarDays, AlignLeft, Send } from "lucide-react";
+import toast from "react-hot-toast";
+import { createEvent } from "../../api/eventService";
 
 const fieldClass =
     "w-full rounded-[var(--r-sm)] p-3 pl-11 outline-none transition-all text-sm focus:border-leaf-400";
 const fieldStyle = {
     border: "1px solid rgba(255, 255, 255, 0.15)",
     background: "rgba(10, 46, 34, 0.8)",
-    color: "#white",
+    color: "white",
 };
 
 function Field({ icon: Icon, label, children }) {
@@ -26,6 +30,47 @@ function Field({ icon: Icon, label, children }) {
 }
 
 export default function CreateEvent() {
+    const navigate = useNavigate();
+    const [submitting, setSubmitting] = useState(false);
+    const [form, setForm] = useState({
+        eventName: "",
+        category: "Environment",
+        capacity: 20,
+        city: "",
+        startAt: "",
+        description: "",
+        requiredSkills: "Punctual, Team Player",
+    });
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!form.eventName.trim() || !form.description.trim()) {
+            toast.error("Please fill in the event title and description.");
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            await createEvent({
+                eventName: form.eventName,
+                description: form.description,
+                city: form.city || "Remote",
+                capacity: parseInt(form.capacity) || 10,
+                startAt: form.startAt ? new Date(form.startAt) : new Date(),
+                requiredSkills: form.requiredSkills,
+            });
+
+            toast.success("Event published successfully!");
+            navigate("/ngo/events");
+        } catch (error) {
+            console.error("Failed to create event:", error);
+            toast.error(error.response?.data?.message || "Failed to create event");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     return (
         <div className="min-h-screen canopy-mesh grain relative overflow-hidden text-white">
             {/* ambient orbs */}
@@ -61,11 +106,13 @@ export default function CreateEvent() {
                         Tell volunteers what you're organizing and how they can help.
                     </p>
 
-                    <form className="grid grid-cols-2 gap-6" onSubmit={(e) => e.preventDefault()}>
+                    <form className="grid grid-cols-2 gap-6" onSubmit={handleSubmit}>
                         <div className="col-span-2">
                             <Field icon={Type} label="Event Title">
                                 <input
                                     type="text"
+                                    value={form.eventName}
+                                    onChange={(e) => setForm({ ...form, eventName: e.target.value })}
                                     placeholder="Beach Cleanup Drive"
                                     className={`${fieldClass} text-white`}
                                     style={fieldStyle}
@@ -74,7 +121,12 @@ export default function CreateEvent() {
                         </div>
 
                         <Field icon={Tag} label="Category">
-                            <select className={`${fieldClass} text-white`} style={fieldStyle}>
+                            <select
+                                value={form.category}
+                                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                                className={`${fieldClass} text-white`}
+                                style={fieldStyle}
+                            >
                                 <option className="bg-[#145C43] text-white">Environment</option>
                                 <option className="bg-[#145C43] text-white">Education</option>
                                 <option className="bg-[#145C43] text-white">Healthcare</option>
@@ -83,15 +135,35 @@ export default function CreateEvent() {
                         </Field>
 
                         <Field icon={Users} label="Volunteers Needed">
-                            <input type="number" placeholder="20" className={`${fieldClass} text-white`} style={fieldStyle} />
+                            <input
+                                type="number"
+                                value={form.capacity}
+                                onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                                placeholder="20"
+                                className={`${fieldClass} text-white`}
+                                style={fieldStyle}
+                            />
                         </Field>
 
                         <Field icon={MapPin} label="Location">
-                            <input type="text" placeholder="Mumbai" className={`${fieldClass} text-white`} style={fieldStyle} />
+                            <input
+                                type="text"
+                                value={form.city}
+                                onChange={(e) => setForm({ ...form, city: e.target.value })}
+                                placeholder="Mumbai"
+                                className={`${fieldClass} text-white`}
+                                style={fieldStyle}
+                            />
                         </Field>
 
                         <Field icon={CalendarDays} label="Date">
-                            <input type="date" className={`${fieldClass} text-white`} style={fieldStyle} />
+                            <input
+                                type="date"
+                                value={form.startAt}
+                                onChange={(e) => setForm({ ...form, startAt: e.target.value })}
+                                className={`${fieldClass} text-white`}
+                                style={fieldStyle}
+                            />
                         </Field>
 
                         <div className="col-span-2">
@@ -102,6 +174,8 @@ export default function CreateEvent() {
                                 <AlignLeft size={17} className="absolute left-3.5 top-4" style={{ color: "var(--leaf-400)" }} />
                                 <textarea
                                     rows="5"
+                                    value={form.description}
+                                    onChange={(e) => setForm({ ...form, description: e.target.value })}
                                     placeholder="Describe your event..."
                                     className={`${fieldClass} text-white`}
                                     style={fieldStyle}
@@ -113,11 +187,13 @@ export default function CreateEvent() {
                             <motion.button
                                 whileHover={{ y: -2 }}
                                 whileTap={{ scale: 0.97 }}
+                                type="submit"
+                                disabled={submitting}
                                 className="flex items-center gap-2 text-white px-8 py-3 rounded-[var(--r-sm)] font-semibold"
                                 style={{ background: "linear-gradient(135deg, var(--leaf-500), var(--forest-700))", boxShadow: "var(--shadow-glow)" }}
                             >
                                 <Send size={17} />
-                                Publish Event
+                                {submitting ? "Publishing..." : "Publish Event"}
                             </motion.button>
                         </div>
                     </form>

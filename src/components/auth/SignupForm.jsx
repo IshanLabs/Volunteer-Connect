@@ -97,7 +97,12 @@ function SignupForm() {
 
       toast.success(response.message || "Account created successfully!");
 
-      navigate("/verify-email");
+      localStorage.setItem("userEmail", formData.email);
+      localStorage.setItem("userName", formData.name);
+
+      navigate("/verify-email", {
+        state: { email: formData.email, name: formData.name }
+      });
     } catch (error) {
       toast.error(
         error.response?.data?.message ||

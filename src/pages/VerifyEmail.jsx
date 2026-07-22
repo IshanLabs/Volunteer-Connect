@@ -1,104 +1,102 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaEnvelopeOpenText } from "react-icons/fa";
 import toast from "react-hot-toast";
 import AuthLayout from "../components/auth/AuthLayout";
 import OTPInput from "../components/auth/OTPInput";
 import AuthButton from "../components/auth/AuthButton";
-// import SuccessAnimation from "../components/auth/SuccessAnimation";
+import { sendOTP, verifyOTP } from "../api/authService";
 
 function VerifyEmail() {
-
   const [otp, setOTP] = useState("");
-
   const [timer, setTimer] = useState(30);
-
   const [loading, setLoading] = useState(false);
-
-
   const [resending, setResending] = useState(false);
-
   const [otpError, setOtpError] = useState("");
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const otpSentRef = useRef(false);
+
+  const userEmail = location.state?.email || localStorage.getItem("userEmail") || "";
+  const userName = location.state?.name || localStorage.getItem("userName") || "";
+
+  // Send OTP on initial load if email exists (guarded against React StrictMode duplicate calls)
+  useEffect(() => {
+    if (userEmail && !otpSentRef.current) {
+      otpSentRef.current = true;
+      handleSendOTP(userEmail, userName);
+    }
+  }, [userEmail, userName]);
+
+  const handleSendOTP = async (email, name) => {
+    try {
+      await sendOTP({ email, name });
+      toast.success("OTP sent to your email!");
+    } catch (error) {
+      console.error("Failed to send OTP:", error);
+      toast.error(error.response?.data?.message || "Failed to send OTP to email.");
+    }
+  };
 
   // Countdown Timer
   useEffect(() => {
-
     if (timer === 0) return;
 
     const interval = setInterval(() => {
-
       setTimer((prev) => prev - 1);
-
     }, 1000);
 
     return () => clearInterval(interval);
-
   }, [timer]);
 
   // Auto Verify when OTP becomes 6 digits
   useEffect(() => {
-
     if (otp.length === 6) {
-
-      verifyOTP();
-
+      handleVerifyOTP();
     }
-
   }, [otp]);
 
-  const verifyOTP = () => {
+  const handleVerifyOTP = async () => {
+    setOtpError("");
+    setLoading(true);
 
-  // Clear previous error
-  setOtpError("");
-
-  setLoading(true);
-
-  setTimeout(() => {
-
-    setLoading(false);
-
-    // Demo OTP
-    if (otp === "123456") {
-
-      toast.success("Email verified successfully!");
+    try {
+      const response = await verifyOTP({ email: userEmail, otp });
+      toast.success(response.message || "Email verified successfully!");
 
       setTimeout(() => {
         navigate("/email-verified");
       }, 1000);
+    } catch (error) {
+      const msg = error.response?.data?.message || "Invalid OTP. Please try again.";
+      setOtpError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    } else {
-
-      setOtpError("Invalid OTP. Please try again.");
-
-      toast.error("Invalid OTP");
-
+  const resendOTP = async () => {
+    if (!userEmail) {
+      toast.error("No email address found. Please signup again.");
+      return;
     }
 
-  }, 1500);
-
-};
-
-const resendOTP = () => {
-
-  setResending(true);
-
-  setTimeout(() => {
-
-    setResending(false);
-
-    setTimer(30);
-
+    setResending(true);
     setOtpError("");
-
     setOTP("");
 
-    toast.success("OTP sent successfully!");
-
-  }, 1500);
-
-};
+    try {
+      await sendOTP({ email: userEmail, name: userName });
+      setTimer(30);
+      toast.success("New OTP sent successfully to your email!");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to resend OTP");
+    } finally {
+      setResending(false);
+    }
+  };
   
 
  
@@ -146,7 +144,7 @@ const resendOTP = () => {
 
           loading={loading}
 
-          onClick={verifyOTP}
+          onClick={handleVerifyOTP}
 
           disabled={otp.length !== 6}
 

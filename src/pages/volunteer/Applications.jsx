@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
     ClipboardList,
@@ -14,68 +14,30 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import StatCard from "../../components/StatCard";
-
-const applications = [
-    {
-        id: 1,
-        title: "Beach Cleanup",
-        category: "Environment",
-        location: "Mumbai",
-        date: "20 July",
-        appliedOn: "15 July",
-        status: "Pending",
-    },
-    {
-        id: 2,
-        title: "Reading Circle",
-        category: "Education",
-        location: "Pune",
-        date: "24 July",
-        appliedOn: "16 July",
-        status: "Accepted",
-    },
-    {
-        id: 3,
-        title: "Meal Drive",
-        category: "Food Distribution",
-        location: "Nashik",
-        date: "28 July",
-        appliedOn: "10 July",
-        status: "Completed",
-    },
-    {
-        id: 4,
-        title: "Blood Donation Camp",
-        category: "Health",
-        location: "Delhi",
-        date: "2 August",
-        appliedOn: "17 July",
-        status: "Rejected",
-    },
-];
+import { fetchMyApplications } from "../../api/applicationService";
 
 const filters = [
     "All",
-    "Pending",
-    "Accepted",
-    "Rejected",
-    "Completed",
+    "SUBMITTED",
+    "SHORTLISTED",
+    "APPROVED",
+    "REJECTED",
 ];
 
 const statusColors = {
-    Pending: {
+    SUBMITTED: {
         bg: "rgba(234,179,8,.18)",
         color: "#FACC15",
     },
-    Accepted: {
-        bg: "rgba(34,197,94,.18)",
-        color: "#4ADE80",
-    },
-    Completed: {
+    SHORTLISTED: {
         bg: "rgba(59,130,246,.18)",
         color: "#60A5FA",
     },
-    Rejected: {
+    APPROVED: {
+        bg: "rgba(34,197,94,.18)",
+        color: "#4ADE80",
+    },
+    REJECTED: {
         bg: "rgba(239,68,68,.18)",
         color: "#F87171",
     },
@@ -83,18 +45,35 @@ const statusColors = {
 
 export default function Applications() {
     const [selected, setSelected] = useState("All");
+    const [appsList, setAppsList] = useState([]);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
+    useEffect(() => {
+        loadApplications();
+    }, []);
+
+    const loadApplications = async () => {
+        setLoading(true);
+        try {
+            const res = await fetchMyApplications();
+            setAppsList(res.data || []);
+        } catch (error) {
+            console.error("Error fetching applications:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const filtered = useMemo(() => {
-        if (selected === "All") return applications;
-        return applications.filter((a) => a.status === selected);
-    }, [selected]);
+        if (selected === "All") return appsList;
+        return appsList.filter((a) => a.status === selected);
+    }, [selected, appsList]);
 
     return (
         <div className="min-h-screen canopy-mesh grain relative overflow-hidden text-white">
 
             {/* Background */}
-
             <motion.div
                 className="absolute w-[36rem] h-[36rem] rounded-full opacity-20"
                 style={{
@@ -132,7 +111,6 @@ export default function Applications() {
                 <Navbar />
 
                 {/* Heading */}
-
                 <div className="mt-8 mb-8">
                     <h1 className="font-display text-4xl font-bold">
                         My Applications
@@ -147,57 +125,39 @@ export default function Applications() {
                 </div>
 
                 {/* Stats */}
-
                 <div className="grid grid-cols-4 gap-5">
-
                     <StatCard
-                        title="Applied"
-                        value={applications.length}
+                        title="Total Applied"
+                        value={appsList.length}
                         icon={ClipboardList}
                         accent="leaf"
                     />
 
                     <StatCard
-                        title="Accepted"
-                        value={
-                            applications.filter(
-                                (a) => a.status === "Accepted"
-                            ).length
-                        }
+                        title="Shortlisted"
+                        value={appsList.filter((a) => a.status === "SHORTLISTED").length}
                         icon={CheckCircle2}
                         accent="gold"
                     />
 
                     <StatCard
-                        title="Completed"
-                        value={
-                            applications.filter(
-                                (a) => a.status === "Completed"
-                            ).length
-                        }
+                        title="Approved"
+                        value={appsList.filter((a) => a.status === "APPROVED").length}
                         icon={Trophy}
                         accent="plum"
                     />
 
                     <StatCard
                         title="Rejected"
-                        value={
-                            applications.filter(
-                                (a) => a.status === "Rejected"
-                            ).length
-                        }
+                        value={appsList.filter((a) => a.status === "REJECTED").length}
                         icon={XCircle}
                         accent="leaf"
                     />
-
                 </div>
 
                 {/* Filters */}
-
                 <div className="flex gap-3 mt-10 mb-8">
-
                     {filters.map((filter) => (
-
                         <button
                             key={filter}
                             onClick={() => setSelected(filter)}
@@ -207,103 +167,89 @@ export default function Applications() {
                                     selected === filter
                                         ? "linear-gradient(135deg,var(--leaf-500),var(--forest-700))"
                                         : "rgba(255,255,255,.05)",
-
-                                border:
-                                    "1px solid rgba(255,255,255,.12)",
+                                border: "1px solid rgba(255,255,255,.12)",
                             }}
                         >
                             {filter}
                         </button>
-
                     ))}
-
                 </div>
 
                 {/* Cards */}
+                {loading ? (
+                    <div className="text-center py-20 text-gray-400">Loading applications...</div>
+                ) : filtered.length === 0 ? (
+                    <div className="text-center py-20 text-gray-400">No applications found.</div>
+                ) : (
+                    <div className="grid grid-cols-3 gap-6">
+                        {filtered.map((application) => {
+                            const statusConf = statusColors[application.status] || statusColors.SUBMITTED;
+                            return (
+                                <motion.div
+                                    key={application.application_id}
+                                    whileHover={{ y: -5 }}
+                                    className="rounded-[var(--r-lg)] p-6 backdrop-blur-sm"
+                                    style={{
+                                        background: "rgba(255,255,255,.05)",
+                                        border: "1px solid rgba(255,255,255,.12)",
+                                    }}
+                                >
+                                    <span
+                                        className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase mb-4"
+                                        style={{
+                                            background: "rgba(47,168,106,.15)",
+                                            color: "var(--leaf-300)",
+                                        }}
+                                    >
+                                        {application.organization_name || "NGO Event"}
+                                    </span>
 
-                <div className="grid grid-cols-3 gap-6">
+                                    <h2 className="font-display text-2xl font-bold">
+                                        {application.event_name}
+                                    </h2>
 
-                    {filtered.map((application) => (
+                                    <div className="space-y-3 mt-5 text-white/70">
+                                        <div className="flex items-center gap-2">
+                                            <MapPin size={16} />
+                                            {application.city || "On-Site"}
+                                        </div>
 
-                        <motion.div
-                            key={application.id}
-                            whileHover={{ y: -5 }}
-                            className="rounded-[var(--r-lg)] p-6 backdrop-blur-sm"
-                            style={{
-                                background:
-                                    "rgba(255,255,255,.05)",
-                                border:
-                                    "1px solid rgba(255,255,255,.12)",
-                            }}
-                        >
+                                        <div className="flex items-center gap-2">
+                                            <Calendar size={16} />
+                                            {new Date(application.start_at).toLocaleDateString()}
+                                        </div>
 
-                            <span
-                                className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase mb-4"
-                                style={{
-                                    background:
-                                        "rgba(47,168,106,.15)",
-                                    color: "var(--leaf-300)",
-                                }}
-                            >
-                                {application.category}
-                            </span>
+                                        <div className="flex items-center gap-2">
+                                            <Clock size={16} />
+                                            Applied on {new Date(application.submitted_at).toLocaleDateString()}
+                                        </div>
+                                    </div>
 
-                            <h2 className="font-display text-2xl font-bold">
-                                {application.title}
-                            </h2>
+                                    <div
+                                        className="inline-block mt-5 px-4 py-2 rounded-full text-sm font-semibold"
+                                        style={{
+                                            background: statusConf.bg,
+                                            color: statusConf.color,
+                                        }}
+                                    >
+                                        {application.status}
+                                    </div>
 
-                            <div className="space-y-3 mt-5 text-white/70">
-
-                                <div className="flex items-center gap-2">
-                                    <MapPin size={16} />
-                                    {application.location}
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <Calendar size={16} />
-                                    {application.date}
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <Clock size={16} />
-                                    Applied on {application.appliedOn}
-                                </div>
-
-                            </div>
-
-                            <div
-                                className="inline-block mt-5 px-4 py-2 rounded-full text-sm font-semibold"
-                                style={{
-                                    background:
-                                        statusColors[
-                                            application.status
-                                        ].bg,
-
-                                    color:
-                                        statusColors[
-                                            application.status
-                                        ].color,
-                                }}
-                            >
-                                {application.status}
-                            </div>
-
-                            <button
-                                onClick={() => navigate(`/volunteer/events/${application.id}`)}
-                                className="w-full mt-6 py-3 rounded-[var(--r-sm)] font-semibold"
-                                style={{
-                                    background:
-                                        "linear-gradient(135deg,var(--leaf-500),var(--forest-700))",
-                                }}
-                            >
-                                View Event
-                            </button>
-
-                        </motion.div>
-
-                    ))}
-
-                </div>
+                                    <button
+                                        onClick={() => navigate(`/volunteer/events/${application.event_id}`)}
+                                        className="w-full mt-6 py-3 rounded-[var(--r-sm)] font-semibold"
+                                        style={{
+                                            background:
+                                                "linear-gradient(135deg,var(--leaf-500),var(--forest-700))",
+                                        }}
+                                    >
+                                        View Event
+                                    </button>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+                )}
 
             </main>
 

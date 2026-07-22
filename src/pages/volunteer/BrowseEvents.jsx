@@ -1,12 +1,11 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { motion } from "framer-motion";
 
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import EventCard from "../../components/EventCard";
-
-import { events } from "../../data/events";
+import { fetchAllEvents } from "../../api/eventService";
 
 const categories = [
   "All",
@@ -21,20 +20,27 @@ const categories = [
 export default function BrowseEvents() {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [eventsList, setEventsList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredEvents = useMemo(() => {
-    return events.filter((event) => {
-      const matchesCategory =
-        selectedCategory === "All" ||
-        event.category === selectedCategory;
-
-      const matchesSearch =
-        event.title.toLowerCase().includes(search.toLowerCase()) ||
-        event.location.toLowerCase().includes(search.toLowerCase());
-
-      return matchesCategory && matchesSearch;
-    });
+  useEffect(() => {
+    loadEvents();
   }, [search, selectedCategory]);
+
+  const loadEvents = async () => {
+    setLoading(true);
+    try {
+      const response = await fetchAllEvents({
+        search,
+        category: selectedCategory !== "All" ? selectedCategory : undefined,
+      });
+      setEventsList(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch live events:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen canopy-mesh grain relative overflow-hidden text-white">
@@ -101,7 +107,7 @@ export default function BrowseEvents() {
               color: "var(--leaf-300)",
             }}
           >
-            {filteredEvents.length} Events Found
+            {eventsList.length} Events Found
           </div>
 
         </div>
@@ -155,17 +161,28 @@ export default function BrowseEvents() {
 
         {/* Grid */}
 
-        <motion.div
-          layout
-          className="grid grid-cols-3 gap-6 mt-10"
-        >
-          {filteredEvents.map((event) => (
-            <EventCard
-              key={event.id}
-              {...event}
-            />
-          ))}
-        </motion.div>
+        {loading ? (
+          <div className="text-center py-20 text-gray-400">Loading events...</div>
+        ) : eventsList.length === 0 ? (
+          <div className="text-center py-20 text-gray-400">No events found matching your criteria.</div>
+        ) : (
+          <motion.div
+            layout
+            className="grid grid-cols-3 gap-6 mt-10"
+          >
+            {eventsList.map((event) => (
+              <EventCard
+                key={event.event_id || event.id}
+                id={event.event_id || event.id}
+                title={event.event_name || event.title}
+                ngo={event.organization_name || event.ngo}
+                location={event.city || event.location}
+                date={event.start_at ? new Date(event.start_at).toLocaleDateString() : event.date}
+                image={event.banner_url || event.image}
+              />
+            ))}
+          </motion.div>
+        )}
 
       </main>
 
